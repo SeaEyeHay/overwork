@@ -1,21 +1,23 @@
 import sys
 import getopt
+
 from dataclasses import dataclass
+from typing import ClassVar
 
 import Xlib.rdb
 
 
 # Resources identifier
-_WS_NAME = 'overwork.polybar.{i}'
-_WS_CLASS = 'Module.Menu.Button'
+__WS_NAME = 'overwork.polybar.{i}'
+__WS_CLASS = 'Module.Menu.Button'
 
 
-_WS_FOREGROUND_CLASS = '{cl}.Foreground'.format(cl=_WS_CLASS)
-_WS_BACKGROUND_CLASS = '{cl}.Background'.format(cl=_WS_CLASS)
-_WS_OVERLINE_CLASS = '{cl}.Overline'.format(cl=_WS_CLASS)
-_WS_UNDERLINE_CLASS = '{cl}.Underline'.format(cl=_WS_CLASS)
+__WS_FOREGROUND_CLASS = f'{__WS_CLASS}.Foreground'
+__WS_BACKGROUND_CLASS = f'{__WS_CLASS}.Background'
+__WS_OVERLINE_CLASS = f'{__WS_CLASS}.Overline'
+__WS_UNDERLINE_CLASS = f'{__WS_CLASS}.Underline'
 
-_WS_COLOR_NAME = 'overwork.polybar.{i}.{fmt}'
+__WS_COLOR_NAME = 'overwork.polybar.{i}.{fmt}'
 
 
 # Configuration structures
@@ -24,8 +26,11 @@ class Parameters:
     db_file: bytes = None
     amount: int = 10
 
+    __shorts: ClassVar[str] = 'f:l:'
+    __long: ClassVar[list[str]] = ['length=', 'file=']
+
     def __init__(self, args):
-        opts, args = getopt.getopt(args, 'f:l:', ['length=', 'file='])
+        opts, args = getopt.getopt(args, Parameters.__shorts, Parameters.__long)
 
         for opt, arg in opts:
 
@@ -53,12 +58,12 @@ class Colors:
 
         def name(part):
             tail = '{status}-{part}'.format(status=st, part=part)
-            return _WS_COLOR_NAME.format(i=i, fmt=tail)
+            return __WS_COLOR_NAME.format(i=i, fmt=tail)
 
-        self.foreground = db[(name('foreground'), _WS_FOREGROUND_CLASS)]
-        self.background = db[(name('background'), _WS_BACKGROUND_CLASS)]
-        self.overlin = db[(name('overline'), _WS_OVERLINE_CLASS)]
-        self.underline = db[(name('underline'), _WS_UNDERLINE_CLASS)]
+        self.foreground = db[(name('foreground'), __WS_FOREGROUND_CLASS)]
+        self.background = db[(name('background'), __WS_BACKGROUND_CLASS)]
+        self.overline = db[(name('overline'), __WS_OVERLINE_CLASS)]
+        self.underline = db[(name('underline'), __WS_UNDERLINE_CLASS)]
 
 
 @dataclass
@@ -91,7 +96,7 @@ __KEY_ERR = '! No entry found in database for "{n}" or "{c}"'
 
 # Load workspaces name
 try:
-    ws_names = [database[(_WS_NAME.format(i=i), _WS_CLASS)] for i in range(parameters.amount)]
+    ws_names = [database[(__WS_NAME.format(i=i), __WS_CLASS)] for i in range(parameters.amount)]
 except KeyError as ex:
     ex = ex.args[0]
     print(__KEY_ERR.format(n=ex[0], c=ex[1]))
@@ -100,7 +105,7 @@ except KeyError as ex:
 
 # Load formating for the button of each workspaces
 try:
-    ws_format = [Formating(database, i) for i in range(parameters.amount)]
+    ws_formats = [Formating(database, i) for i in range(parameters.amount)]
 except KeyError as ex:
     ex = ex.args[0]
     print(__KEY_ERR.format(n=ex[0], c=ex[1]))
