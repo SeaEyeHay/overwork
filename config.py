@@ -8,16 +8,8 @@ import Xlib.rdb
 
 
 # Resources identifier
-__WS_NAME = 'overwork.polybar.{i}'
-__WS_CLASS = 'Module.Menu.Button'
-
-
-__WS_FOREGROUND_CLASS = f'{__WS_CLASS}.Foreground'
-__WS_BACKGROUND_CLASS = f'{__WS_CLASS}.Background'
-__WS_OVERLINE_CLASS = f'{__WS_CLASS}.Overline'
-__WS_UNDERLINE_CLASS = f'{__WS_CLASS}.Underline'
-
-__WS_COLOR_NAME = 'overwork.polybar.{i}.{fmt}'
+WS_NAME = 'overwork.polybar.{i}'
+WS_CLASS = 'Module.Menu.Button'
 
 
 # Configuration structures
@@ -54,16 +46,23 @@ class Colors:
     overline: str
     underline: str
 
+    __WS_FOREGROUND_CLASS: ClassVar = f'{WS_CLASS}.Foreground'
+    __WS_BACKGROUND_CLASS: ClassVar = f'{WS_CLASS}.Background'
+    __WS_OVERLINE_CLASS: ClassVar = f'{WS_CLASS}.Overline'
+    __WS_UNDERLINE_CLASS: ClassVar = f'{WS_CLASS}.Underline'
+
+    __WS_COLOR_NAME = 'overwork.polybar.{i}.{fmt}'
+
     def __init__(self, db, st, i):
 
         def name(part):
             tail = '{status}-{part}'.format(status=st, part=part)
-            return __WS_COLOR_NAME.format(i=i, fmt=tail)
+            return Colors.__WS_COLOR_NAME.format(i=i, fmt=tail)
 
-        self.foreground = db[(name('foreground'), __WS_FOREGROUND_CLASS)]
-        self.background = db[(name('background'), __WS_BACKGROUND_CLASS)]
-        self.overline = db[(name('overline'), __WS_OVERLINE_CLASS)]
-        self.underline = db[(name('underline'), __WS_UNDERLINE_CLASS)]
+        self.foreground = db[(name('foreground'), Colors.__WS_FOREGROUND_CLASS)]
+        self.background = db[(name('background'), Colors.__WS_BACKGROUND_CLASS)]
+        self.overline = db[(name('overline'), Colors.__WS_OVERLINE_CLASS)]
+        self.underline = db[(name('underline'), Colors.__WS_UNDERLINE_CLASS)]
 
 
 @dataclass
@@ -96,7 +95,7 @@ __KEY_ERR = '! No entry found in database for "{n}" or "{c}"'
 
 # Load workspaces name
 try:
-    ws_names = [database[(__WS_NAME.format(i=i), __WS_CLASS)] for i in range(parameters.amount)]
+    ws_names = [database[(WS_NAME.format(i=i), WS_CLASS)] for i in range(parameters.amount)]
 except KeyError as ex:
     ex = ex.args[0]
     print(__KEY_ERR.format(n=ex[0], c=ex[1]))
