@@ -3,7 +3,7 @@ from copy import copy
 import i3ipc
 
 
-class i3File:
+class i3Iter:
 
     # Constructor
     def __init__(self, file):
