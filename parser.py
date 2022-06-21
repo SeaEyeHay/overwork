@@ -49,6 +49,13 @@ class i3Iter:
 
 class i3Dict(dict):
 
+    def __init__(self, file):
+        super().__init__()
+
+        for var, value in i3Iter(file):
+            self.insert_var(var, value)
+
+
     def expand_value(self, value):
 
         def extract_word(value):
@@ -70,7 +77,7 @@ class i3Dict(dict):
         return reduce(lambda ex, part: ex + part, next_part(value))
 
 
-    def insert_var(self, name, value):
+    def insert_var(self, var, value):
         value = self.expand_value(value)
-        self[name] = value
+        self[var] = value
 
