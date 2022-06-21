@@ -3,5 +3,6 @@
 *.swp
 *.swo
 
-# cache
+# Python
 __pycache__
+overwork.egg-info
