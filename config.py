@@ -4,7 +4,7 @@ import getopt
 from dataclasses import dataclass
 from typing import ClassVar
 
-import Xlib.rdb
+from Xlib.rdb import ResourceDB, SepArg
 
 
 # Resources identifier
@@ -15,6 +15,8 @@ WS_CLASS = 'Module.Menu.Button'
 # Configuration structures
 @dataclass
 class Parameters:
+    args: list
+
     db_file: bytes = None
     amount: int = 10
 
@@ -22,7 +24,7 @@ class Parameters:
     __long: ClassVar[list[str]] = ['length=', 'file=']
 
     def __init__(self, args):
-        opts, args = getopt.getopt(args, Parameters.__shorts, Parameters.__long)
+        opts, self.args = getopt.getopt(args, Parameters.__shorts, Parameters.__long)
 
         for opt, arg in opts:
 
@@ -32,7 +34,7 @@ class Parameters:
                     if self.amount <= 0:
                         raise ValueError()
                 except ValueError:
-                    print('! Invalid value for {opt}: "{val}"'.format(opt=opt, val=arg))
+                    print(f'! Invalid value for {opt}: "{arg}"')
                     sys.exit(1)
 
             elif opt in ('-f', '--file'):
@@ -53,16 +55,16 @@ class Colors:
 
     __WS_COLOR_NAME = 'overwork.polybar.{i}.{fmt}'
 
-    def __init__(self, db, st, i):
+    def __init__(self, db, status, i):
 
         def name(part):
-            tail = '{status}-{part}'.format(status=st, part=part)
+            tail = f'{status}-{part}'
             return Colors.__WS_COLOR_NAME.format(i=i, fmt=tail)
 
-        self.foreground = db[(name('foreground'), Colors.__WS_FOREGROUND_CLASS)]
-        self.background = db[(name('background'), Colors.__WS_BACKGROUND_CLASS)]
-        self.overline = db[(name('overline'), Colors.__WS_OVERLINE_CLASS)]
-        self.underline = db[(name('underline'), Colors.__WS_UNDERLINE_CLASS)]
+        self.foreground = db.get(name('foreground'), Colors.__WS_FOREGROUND_CLASS)
+        self.background = db.get(name('background'), Colors.__WS_BACKGROUND_CLASS)
+        self.overline = db.get(name('overline'), Colors.__WS_OVERLINE_CLASS)
+        self.underline = db.get(name('underline'), Colors.__WS_UNDERLINE_CLASS)
 
 
 @dataclass
@@ -85,28 +87,16 @@ parameters = Parameters(sys.argv[1:])
 
 # Load the Xresources database
 try:
-    database = Xlib.rdb.ResourceDB(file=parameters.db_file)
+    database = ResourceDB(file=parameters.db_file)
 except IOError:
-    print('! Invalide resources file: "{path}"'.format(path=parameters.db_file))
+    print(f'! Invalide resources file: "{parameters.db_file}"')
     sys.exit(1)
 
-
-__KEY_ERR = '! No entry found in database for "{n}" or "{c}"'
 
 # Load workspaces name
-try:
-    ws_names = [database[(WS_NAME.format(i=i), WS_CLASS)] for i in range(parameters.amount)]
-except KeyError as ex:
-    ex = ex.args[0]
-    print(__KEY_ERR.format(n=ex[0], c=ex[1]))
-    sys.exit(1)
+ws_names = [database.get(WS_NAME.format(i=i), WS_CLASS) for i in range(parameters.amount)]
 
 
 # Load formating for the button of each workspaces
-try:
-    ws_formats = [Formating(database, i) for i in range(parameters.amount)]
-except KeyError as ex:
-    ex = ex.args[0]
-    print(__KEY_ERR.format(n=ex[0], c=ex[1]))
-    sys.exit(1)
+ws_formats = [Formating(database, i) for i in range(parameters.amount)]
 

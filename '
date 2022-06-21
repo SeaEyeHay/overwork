@@ -1,0 +1,38 @@
+from copy import copy
+
+import i3ipc
+
+
+class ConfigFile:
+
+    # Constructor
+    def __init__(self, file):
+        if isinstance(file, i3ipc.Connection):
+            file = file.get_config().config
+
+        if isinstance(file, str):
+            with open(file, 'r', encoding='utf-8') as buf:
+                self.content = buf.readlines()
+
+        else:
+            self.content = file.readlines()
+
+    # Iterator
+
+    def __iter__(self):
+        return copy(self)
+
+    def __next__(self):
+        # Find the next variable
+        while not self.content[0].lstrip().startswith('set'):
+            self.content = self.content[1:]
+
+        # Extract the variable's "Name" and "Value"
+        pair = self.content[0][self.content[0].find('$'):].split(maxsplit=1)
+        pair = list(map(pair, lambda s: s.strip()))
+
+        # Move to the next line
+        self.content = self.content[1:]
+
+        return pair
+

@@ -1,4 +1,5 @@
 from copy import copy
+from functools import reduce
 
 import i3ipc
 
@@ -44,4 +45,32 @@ class i3Iter:
         self.content = self.content[1:]
 
         return pair
+
+
+class i3Dict(dict):
+
+    def expand_value(self, value):
+
+        def extract_word(value):
+            for i, cha in enumerate(value):
+                if not cha.isalnum() and cha != '$':
+                    word = value[:i]
+                    value = value[i:]
+
+                    return word, value
+
+        def next_part(value):
+            while (i := value.find('$')) >= 0:
+                yield value[:i]
+                var, value = extract_word(value[i:])
+                yield self[var]
+
+            yield value
+
+        return reduce(lambda ex, part: ex + part, next_part(value))
+
+
+    def insert_var(self, name, value):
+        value = self.expand_value(value)
+        self[name] = value
 
